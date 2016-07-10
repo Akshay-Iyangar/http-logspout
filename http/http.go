@@ -2,8 +2,6 @@
 package http
 
 import (
-	"bytes"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -109,7 +107,7 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 	//defaultPath := ""
 	//path := getStringParameter(route.Options, "http.path", defaultPath)
 	//endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
-  endpointUrl="http://localhost:12285/v1/dc/logs/ecomm/logs"
+  endpointUrl := "http://localhost:12285/v1/dc/logs/ecomm/logs"
   debug("http: url:", endpointUrl)
 	transport := &http.Transport{}
 	transport.Dial = dial
