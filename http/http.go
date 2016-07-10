@@ -1,7 +1,8 @@
-
 package http
 
 import (
+	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,12 +16,12 @@ import (
 	"strings"
 	"sync"
 	"time"
-
 	"github.com/gliderlabs/logspout/router"
 )
 
 func init() {
 	router.AdapterFactories.Register(NewHTTPAdapter, "http")
+	router.AdapterFactories.Register(NewHTTPAdapter, "https")
 }
 
 func debug(v ...interface{}) {
@@ -104,13 +105,29 @@ type HTTPAdapter struct {
 func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 
 	// Figure out the URI and create the HTTP client
-	//defaultPath := ""
-	//path := getStringParameter(route.Options, "http.path", defaultPath)
-	//endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
-  endpointUrl := "http://localhost:12285/v1/dc/logs/ecomm/logs"
-  debug("http: url:", endpointUrl)
+	defaultPath := ""
+	path := getStringParameter(route.Options, "http.path", defaultPath)
+	endpointUrl := fmt.Sprintf("%s://%s:12285%s", route.Adapter, route.Address, path)
+
+	//Hard coding the DCR pusher URL. <<This won't work>>
+
+
+	debug("http: url:", endpointUrl)
 	transport := &http.Transport{}
 	transport.Dial = dial
+
+	// Figure out if we need a proxy
+	defaultProxyUrl := ""
+	proxyUrlString := getStringParameter(route.Options, "http.proxy", defaultProxyUrl)
+	if proxyUrlString != "" {
+		proxyUrl, err := url.Parse(proxyUrlString)
+		if err != nil {
+			die("", "http: cannot parse proxy url:", err, proxyUrlString)
+		}
+		transport.Proxy = http.ProxyURL(proxyUrl)
+		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		debug("http: proxy url:", proxyUrl)
+	}
 
 	// Create the client
 	client := &http.Client{Transport: transport}
@@ -239,6 +256,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 		response, err := a.client.Do(request)
 		if err != nil {
 			debug("http - error on client.Do:", err, a.url)
+			// TODO @raychaser - now what?
 			if a.crash {
 				die("http - error on client.Do:", err, a.url)
 			} else {
@@ -247,6 +265,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 		}
 		if response.StatusCode != 200 {
 			debug("http: response not 200 but", response.StatusCode)
+			// TODO @raychaser - now what?
 			if a.crash {
 				die("http: response not 200 but", response.StatusCode)
 			}
@@ -265,6 +284,19 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	}()
 }
 
+// Create the request
+func createRequest(url string, payload string) *http.Request {
+	var request *http.Request
+		var err error
+		request, err = http.NewRequest("POST", url, strings.NewReader(payload))
+		if err != nil {
+			debug("http: error on http.NewRequest:", err, url)
+			// TODO @raychaser - now what?
+			die("", "http: error on http.NewRequest:", err, url)
+		}
+
+	return request
+}
 
 // HTTPMessage is a simple JSON representation of the log message.
 type HTTPMessage struct {
