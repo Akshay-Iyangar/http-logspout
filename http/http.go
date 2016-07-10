@@ -1,6 +1,8 @@
 package http
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -15,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+
 	"github.com/gliderlabs/logspout/router"
 )
 
@@ -97,6 +100,7 @@ type HTTPAdapter struct {
 	timeout           time.Duration
 	totalMessageCount int
 	bufferMutex       sync.Mutex
+	useGzip           bool
 	crash			  bool
 }
 
@@ -106,11 +110,9 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 	// Figure out the URI and create the HTTP client
 	defaultPath := ""
 	path := getStringParameter(route.Options, "http.path", defaultPath)
-	endpointUrl := fmt.Sprintf("%s://%s:12285%s", route.Adapter, route.Address, path)
-
-	//Hard coding the DCR pusher URL. <<This won't work>>
-
-
+	fmt.Println(path)
+	endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
+	fmt.Println(endpointUrl)
 	debug("http: url:", endpointUrl)
 	transport := &http.Transport{}
 	transport.Dial = dial
@@ -154,6 +156,13 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 	}
 	timer := time.NewTimer(timeout)
 
+	// Figure out whether we should use GZIP compression
+	useGzip := false
+	useGZipString := getStringParameter(route.Options, "http.gzip", "false")
+	if useGZipString == "true" {
+		useGzip = true
+		debug("http: gzip compression enabled")
+	}
 
 	// Should we crash on an error or keep going?
 	crash := true
@@ -172,6 +181,7 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 		timer:    timer,
 		capacity: capacity,
 		timeout:  timeout,
+		useGzip:  useGzip,
 		crash:    crash,
 	}, nil
 }
@@ -250,12 +260,12 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	go func() {
 
 		// Create the request and send it on its way
-		request := createRequest(a.url, payload)
+		request := createRequest(a.url, a.useGzip, payload)
 		start := time.Now()
 		response, err := a.client.Do(request)
 		if err != nil {
 			debug("http - error on client.Do:", err, a.url)
-			// TODO @raychaser - now what?
+
 			if a.crash {
 				die("http - error on client.Do:", err, a.url)
 			} else {
@@ -264,7 +274,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 		}
 		if response.StatusCode != 200 {
 			debug("http: response not 200 but", response.StatusCode)
-			// TODO @raychaser - now what?
+
 			if a.crash {
 				die("http: response not 200 but", response.StatusCode)
 			}
@@ -283,17 +293,38 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	}()
 }
 
-// Create the request
-func createRequest(url string, payload string) *http.Request {
+// Create the request based on whether GZIP compression is to be used
+func createRequest(url string, useGzip bool, payload string) *http.Request {
 	var request *http.Request
+	if useGzip {
+		gzipBuffer := new(bytes.Buffer)
+		gzipWriter := gzip.NewWriter(gzipBuffer)
+		_, err := gzipWriter.Write([]byte(payload))
+		if err != nil {
+
+			die("http: unable to write to GZIP writer:", err)
+		}
+		err = gzipWriter.Close()
+		if err != nil {
+
+			die("http: unable to close GZIP writer:", err)
+		}
+		request, err = http.NewRequest("POST", url, gzipBuffer)
+		if err != nil {
+			debug("http: error on http.NewRequest:", err, url)
+
+			die("", "http: error on http.NewRequest:", err, url)
+		}
+		request.Header.Set("Content-Encoding", "gzip")
+	} else {
 		var err error
 		request, err = http.NewRequest("POST", url, strings.NewReader(payload))
 		if err != nil {
 			debug("http: error on http.NewRequest:", err, url)
-			// TODO @raychaser - now what?
+
 			die("", "http: error on http.NewRequest:", err, url)
 		}
-
+	}
 	return request
 }
 
