@@ -108,10 +108,12 @@ type HTTPAdapter struct {
 func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 
 	// Figure out the URI and create the HTTP client
-	defaultPath := ""
-	path := getStringParameter(route.Options, "http.path", defaultPath)
-	fmt.Println(path)
-	endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
+	//defaultPath := ""
+	//path := getStringParameter(route.Options, "http.path", defaultPath)
+	//fmt.Println(path)
+	//endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
+
+	endpointUrl:="http://10.32.40.143:12285/v1/dc/logs/ecomm/logs"
 	fmt.Println(endpointUrl)
 	debug("http: url:", endpointUrl)
 	transport := &http.Transport{}
