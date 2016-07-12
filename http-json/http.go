@@ -262,11 +262,11 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				debug("http: error on client.Do:", err)
 			}
 		}
-		if (response.StatusCode != 201 || response.StatusCode != 200){
-			debug("http: response not 200 (OK) or 201 (Created) but", response.StatusCode)
+		if response.StatusCode != 201 {
+			debug("http: response not 201 (Created) but", response.StatusCode)
 
 			if a.crash {
-				die("http: response not 200( OK) or 201 (Created) but", response.StatusCode)
+				die("http: response not 201 but", response.StatusCode)
 			}
 		}
 
