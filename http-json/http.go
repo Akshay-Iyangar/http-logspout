@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
