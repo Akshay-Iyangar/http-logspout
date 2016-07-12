@@ -108,12 +108,12 @@ type HTTPAdapter struct {
 func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 
 	// Figure out the URI and create the HTTP client
-	//defaultPath := ""
-	//path := getStringParameter(route.Options, "http.path", defaultPath)
-	//fmt.Println(path)
-	//endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
+	defaultPath := ""
+	path := getStringParameter(route.Options, "http.path", defaultPath)
+	fmt.Println(path)
+	endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
 
-	endpointUrl:="http://10.32.40.143:12285/v1/dc/logs/ecomm/logs"
+		//endpointUrl:="http://10.32.40.143:12285/v1/dc/logs/ecomm/logs"
 	fmt.Println(endpointUrl)
 	debug("http: url:", endpointUrl)
 	transport := &http.Transport{}
@@ -274,7 +274,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				debug("http: error on client.Do:", err)
 			}
 		}
-		if response.StatusCode != 200 {
+		if (response.StatusCode != 200 || response.StatusCode != 201) {
 			debug("http: response not 200 but", response.StatusCode)
 
 			if a.crash {
