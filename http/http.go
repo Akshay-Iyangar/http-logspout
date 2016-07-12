@@ -274,7 +274,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				debug("http: error on client.Do:", err)
 			}
 		}
-		if (response.StatusCode != 200 || response.StatusCode != 201) {
+		if response.StatusCode != 201{
 			debug("http: response not 200 but", response.StatusCode)
 
 			if a.crash {
