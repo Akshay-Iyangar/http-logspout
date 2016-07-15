@@ -262,13 +262,15 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				debug("http: error on client.Do:", err)
 			}
 		}
-		if response.StatusCode != 201 {
-			debug("http: response not 201 (Created) but", response.StatusCode)
+		if (response.StatusCode != 201 && response.StatusCode != 200)  {
+			debug("Akshay http: response not 201 (Created) but", response.StatusCode)
 
 			if a.crash {
-				die("http: response not 201 but", response.StatusCode)
+				die(" Akshay http: response not 201 but", response.StatusCode)
 			}
 		}
+
+		debug("Akshay success", response.StatusCode)
 
 		// Make sure the entire response body is read so the HTTP
 		// connection can be reused
