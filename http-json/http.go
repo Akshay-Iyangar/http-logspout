@@ -106,9 +106,7 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 	// Figure out the URI and create the HTTP client
 	defaultPath := ""
 	path := getStringParameter(route.Options, "http.path", defaultPath)
-	fmt.Println(path)
 	endpointUrl := fmt.Sprintf("%s://%s%s", route.Adapter, route.Address, path)
-	fmt.Println(endpointUrl)
 	debug("http: url:", endpointUrl)
 	transport := &http.Transport{}
 	transport.Dial = dial
@@ -263,14 +261,12 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			}
 		}
 		if (response.StatusCode != 201 && response.StatusCode != 200)  {
-			debug("Akshay http: response not 201 (Created) but", response.StatusCode)
+			debug("http: response not 201 (Created) or 200 (OK) but", response.StatusCode)
 
 			if a.crash {
-				die(" Akshay http: response not 201 but", response.StatusCode)
+				die(" Akshay http: response not 201 or 200 (OK) but", response.StatusCode)
 			}
 		}
-
-		debug("Akshay success", response.StatusCode)
 
 		// Make sure the entire response body is read so the HTTP
 		// connection can be reused
