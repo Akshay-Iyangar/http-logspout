@@ -264,7 +264,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			debug("http: response not 201 (Created) or 200 (OK) but", response.StatusCode)
 
 			if a.crash {
-				die(" Akshay http: response not 201 or 200 (OK) but", response.StatusCode)
+				die("http: response not 201 or 200 (OK) but", response.StatusCode)
 			}
 		}
 
