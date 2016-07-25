@@ -239,8 +239,8 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			debug("flushHttp - Error encoding JSON: ", err)
 			continue
 		}
-		if strings.Contains(string(message),"Content-Type: application/json"){
-			debug("message has been succesfully accepted", string(message))
+		if !strings.Contains(string(message),"GET /admin/healthcheck"){
+			debug(" health message has been succesfully discarded", string(message))
 			messages = append(messages, string(message))
 		}
 	}
@@ -249,6 +249,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	// Glue all the JSON representations together into one payload to send
 	payload := strings.Join(messages, "\n")
 
+	debug("The payload is ", messages)
 	go func() {
 
 		// Create the request and send it on its way
