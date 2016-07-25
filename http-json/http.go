@@ -239,11 +239,13 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			debug("flushHttp - Error encoding JSON: ", err)
 			continue
 		}
-		if strings.Contains(message,"Content-Type: application/json"){
+		if strings.Contains(string(message),"Content-Type: application/json"){
+			debug("message has been succesfully accepted", string(message))
 			messages = append(messages, string(message))
 		}
 	}
 
+	debug("The complete message is ", messages)
 	// Glue all the JSON representations together into one payload to send
 	payload := strings.Join(messages, "\n")
 
@@ -269,7 +271,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				die("http: response not 201 or 200 (OK) but", response.StatusCode)
 			}
 		}
-
+		debug("http  response code is", response.StatusCode)
 		// Make sure the entire response body is read so the HTTP
 		// connection can be reused
 		io.Copy(ioutil.Discard, response.Body)
