@@ -240,6 +240,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			continue
 		}
 		if strings.Contains(string(message),"Content-Type: application/json"){
+			debug("message has been succesfully accepted", string(message))
 			messages = append(messages, string(message))
 		}
 	}
