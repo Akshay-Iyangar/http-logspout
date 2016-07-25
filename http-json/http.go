@@ -241,7 +241,9 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			debug("flushHttp - Error encoding JSON: ", err)
 			continue
 		}
-		messages = append(messages, string(message))
+		if strings.Contains(message,"Content-Type: application/json"){
+			messages = append(messages, string(message))
+		}
 	}
 
 	// Glue all the JSON representations together into one payload to send
