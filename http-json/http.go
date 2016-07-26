@@ -226,6 +226,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	for i := range buffer {
 		m := buffer[i]
 		if strings.Contains(m.Data,"data"){
+
 			httpMessage := HTTPMessage{
 				Message:  m.Data,
 				Time:     m.Time.Format(time.RFC3339),
@@ -235,12 +236,19 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				Image:    m.Container.Config.Image,
 				Hostname: m.Container.Config.Hostname,
 			}
+			debug("Successfully generated httpMessage ", httpMessage)
 			message, err := json.Marshal(httpMessage)
 			if err != nil {
 				debug("flushHttp - Error encoding JSON: ", err)
 				continue
 			}
 			messages = append(messages, string(message))
+			debug("messages in if condition ", messages)
+		}
+		else{
+			message := " "
+			messages = append(messages, string(message))
+			debug("messages in else condition ", messages)
 		}
 	}
 
