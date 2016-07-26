@@ -97,7 +97,7 @@ type HTTPAdapter struct {
 	timeout           time.Duration
 	totalMessageCount int
 	bufferMutex       sync.Mutex
-	crash			  bool
+	crash			  			bool
 }
 
 // NewHTTPAdapter creates an HTTPAdapter
@@ -222,11 +222,9 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	a.bufferMutex.Unlock()
 
 	// Create JSON representation of all messages
-	var messages = make([]string, 0, len(buffer))
+	messages := make([]string, 0, len(buffer))
 	for i := range buffer {
 		m := buffer[i]
-		if strings.Contains(m.Data,"data"){
-
 			httpMessage := HTTPMessage{
 				Message:  m.Data,
 				Time:     m.Time.Format(time.RFC3339),
@@ -236,23 +234,18 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				Image:    m.Container.Config.Image,
 				Hostname: m.Container.Config.Hostname,
 			}
-			debug("Successfully generated httpMessage ", httpMessage)
 			message, err := json.Marshal(httpMessage)
 			if err != nil {
 				debug("flushHttp - Error encoding JSON: ", err)
 				continue
 			}
 			messages = append(messages, string(message))
-			debug("messages in if condition ", messages)
-		}
-		message := ""
-		messages = append(messages, string(message))
 	}
 
 	// Glue all the JSON representations together into one payload to send
 	payload := strings.Join(messages, "\n")
 	debug("payload message", payload)
-	//go func() {
+	go func() {
 
 		// Create the request and send it on its way
 		request := createRequest(a.url, payload)
@@ -285,7 +278,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 		a.totalMessageCount += len(messages)
 		debug("http: flushed:", reason, "messages:", len(messages),
 			"in:", timeAll, "total:", a.totalMessageCount)
-	//}()
+	}()
 }
 
 // Create the request
