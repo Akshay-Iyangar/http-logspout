@@ -139,6 +139,7 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 			capacity, "using default:", defaultCapacity)
 		capacity = defaultCapacity
 	}
+	debug("the capacity is ",capacity)
 	buffer := make([]*router.Message, 0, capacity)
 
 	// Determine the buffer timeout
@@ -183,6 +184,8 @@ func (a *HTTPAdapter) Stream(logstream chan *router.Message) {
 			a.bufferMutex.Lock()
 			a.buffer = append(a.buffer, message)
 			a.bufferMutex.Unlock()
+			debug("the length of the buffer is",len(a.buffer))
+			debug("the capacity of the buffer is",cap(a.buffer))
 
 			// Flush if the buffer is at capacity
 			if len(a.buffer) >= cap(a.buffer) {
@@ -246,37 +249,39 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 
 	debug("payload message", payload)
 	go func() {
-		// Create the request and send it on its way
-		request := createRequest(a.url, payload)
-		start := time.Now()
-		response, err := a.client.Do(request)
-		if err != nil {
-			debug("http - error on client.Do:", err, a.url)
 
-			if a.crash {
-				die("http - error on client.Do:", err, a.url)
-			} else {
-				debug("http: error on client.Do:", err)
+		if strings.Contains(payload,"data"){
+			// Create the request and send it on its way
+			request := createRequest(a.url, payload)
+			start := time.Now()
+			response, err := a.client.Do(request)
+			if err != nil {
+				debug("http - error on client.Do:", err, a.url)
+
+				if a.crash {
+					die("http - error on client.Do:", err, a.url)
+				} else {
+					debug("http: error on client.Do:", err)
+				}
 			}
-		}
-		if (response.StatusCode != 201 && response.StatusCode != 200)  {
-			debug("http: response not 201 (Created) or 200 (OK) but", response.StatusCode)
+			if (response.StatusCode != 201 && response.StatusCode != 200)  {
+				debug("http: response not 201 (Created) or 200 (OK) but", response.StatusCode)
 
-			if a.crash {
-				die("http: response not 201 or 200 (OK) but", response.StatusCode)
+				if a.crash {
+					die("http: response not 201 or 200 (OK) but", response.StatusCode)
+				}
 			}
-		}
-		debug("http  response code is", response.StatusCode)
-		// Make sure the entire response body is read so the HTTP
-		// connection can be reused
-		io.Copy(ioutil.Discard, response.Body)
-		response.Body.Close()
+			debug("http  response code is", response.StatusCode)
+			// Make sure the entire response body is read so the HTTP
+			// connection can be reused
+			io.Copy(ioutil.Discard, response.Body)
+			response.Body.Close()
 
-		// Bookkeeping, logging
-		timeAll := time.Since(start)
-		a.totalMessageCount += len(messages)
-		debug("http: flushed:", reason, "messages:", len(messages),
-			"in:", timeAll, "total:", a.totalMessageCount)
+			// Bookkeeping, logging
+			timeAll := time.Since(start)
+			a.totalMessageCount += len(messages)
+			debug("http: flushed:", reason, "messages:", len(messages),
+				"in:", timeAll, "total:", a.totalMessageCount)
 	}()
 }
 
