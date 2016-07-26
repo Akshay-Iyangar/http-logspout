@@ -249,8 +249,6 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 
 	debug("payload message", payload)
 	go func() {
-
-		if strings.Contains(payload,"data"){
 			// Create the request and send it on its way
 			request := createRequest(a.url, payload)
 			start := time.Now()
@@ -280,8 +278,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			// Bookkeeping, logging
 			timeAll := time.Since(start)
 			a.totalMessageCount += len(messages)
-			debug("http: flushed:", reason, "messages:", len(messages),
-				"in:", timeAll, "total:", a.totalMessageCount)
+			debug("http: flushed:", reason, "messages:", len(messages), "in:", timeAll, "total:", a.totalMessageCount)
 	}()
 }
 
