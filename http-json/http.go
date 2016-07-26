@@ -246,40 +246,37 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 
 	debug("payload message", payload)
 	go func() {
+		// Create the request and send it on its way
+		request := createRequest(a.url, payload)
+		start := time.Now()
+		response, err := a.client.Do(request)
+		if err != nil {
+			debug("http - error on client.Do:", err, a.url)
 
-		if strings.Contains(payload,"data"){
-			// Create the request and send it on its way
-			request := createRequest(a.url, payload)
-			start := time.Now()
-			response, err := a.client.Do(request)
-			if err != nil {
-				debug("http - error on client.Do:", err, a.url)
-
-				if a.crash {
-					die("http - error on client.Do:", err, a.url)
-				} else {
-					debug("http: error on client.Do:", err)
-				}
+			if a.crash {
+				die("http - error on client.Do:", err, a.url)
+			} else {
+				debug("http: error on client.Do:", err)
 			}
-			if (response.StatusCode != 201 && response.StatusCode != 200)  {
-				debug("http: response not 201 (Created) or 200 (OK) but", response.StatusCode)
-
-				if a.crash {
-					die("http: response not 201 or 200 (OK) but", response.StatusCode)
-				}
-			}
-			debug("http  response code is", response.StatusCode)
-			// Make sure the entire response body is read so the HTTP
-			// connection can be reused
-			io.Copy(ioutil.Discard, response.Body)
-			response.Body.Close()
-
-			// Bookkeeping, logging
-			timeAll := time.Since(start)
-			a.totalMessageCount += len(messages)
-			debug("http: flushed:", reason, "messages:", len(messages),
-				"in:", timeAll, "total:", a.totalMessageCount)
 		}
+		if (response.StatusCode != 201 && response.StatusCode != 200)  {
+			debug("http: response not 201 (Created) or 200 (OK) but", response.StatusCode)
+
+			if a.crash {
+				die("http: response not 201 or 200 (OK) but", response.StatusCode)
+			}
+		}
+		debug("http  response code is", response.StatusCode)
+		// Make sure the entire response body is read so the HTTP
+		// connection can be reused
+		io.Copy(ioutil.Discard, response.Body)
+		response.Body.Close()
+
+		// Bookkeeping, logging
+		timeAll := time.Since(start)
+		a.totalMessageCount += len(messages)
+		debug("http: flushed:", reason, "messages:", len(messages),
+			"in:", timeAll, "total:", a.totalMessageCount)
 	}()
 }
 
