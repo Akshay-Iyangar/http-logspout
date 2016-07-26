@@ -134,7 +134,7 @@ func NewHTTPAdapter(route *router.Route) (router.LogAdapter, error) {
 	defaultCapacity := 100
 	capacity := getIntParameter(
 		route.Options, "http.buffer.capacity", defaultCapacity)
-	if capacity < 1 || capacity > 10000 {
+	if capacity < 1 || capacity >  5000000 {
 		debug("http: non-sensical value for parameter: http.buffer.capacity",
 			capacity, "using default:", defaultCapacity)
 		capacity = defaultCapacity
