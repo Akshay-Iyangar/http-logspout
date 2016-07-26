@@ -250,7 +250,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	// Glue all the JSON representations together into one payload to send
 	payload := strings.Join(messages, "\n")
 	debug("payload message", payload)
-	go func() {
+	//go func() {
 
 		// Create the request and send it on its way
 		request := createRequest(a.url, payload)
@@ -283,7 +283,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 		a.totalMessageCount += len(messages)
 		debug("http: flushed:", reason, "messages:", len(messages),
 			"in:", timeAll, "total:", a.totalMessageCount)
-	}()
+	//}()
 }
 
 // Create the request
