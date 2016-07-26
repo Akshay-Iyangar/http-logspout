@@ -239,8 +239,8 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			debug("flushHttp - Error encoding JSON: ", err)
 			continue
 		}
-		if !strings.Contains(string(message),"GET /admin/healthcheck"){
-			debug(" health message has been succesfully discarded", string(message))
+		if strings.Contains(string(message),"data"){
+			debug(" data appended", string(message))
 			messages = append(messages, string(message))
 		}
 	}
