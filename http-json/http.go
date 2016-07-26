@@ -179,16 +179,14 @@ func (a *HTTPAdapter) Stream(logstream chan *router.Message) {
 	for {
 		select {
 		case message := <-logstream:
-			if strings.Contains(string(message),"data"){
-				// Append the message to the buffer
-				a.bufferMutex.Lock()
-				a.buffer = append(a.buffer, message)
-				a.bufferMutex.Unlock()
+			// Append the message to the buffer
+			a.bufferMutex.Lock()
+			a.buffer = append(a.buffer, message)
+			a.bufferMutex.Unlock()
 
-				// Flush if the buffer is at capacity
-				if len(a.buffer) >= cap(a.buffer) {
-					a.flushHttp("full")
-				}
+			// Flush if the buffer is at capacity
+			if len(a.buffer) >= cap(a.buffer) {
+				a.flushHttp("full")
 			}
 
 		case <-a.timer.C:
@@ -240,11 +238,12 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 				debug("flushHttp - Error encoding JSON: ", err)
 				continue
 			}
-			messages = append(messages, string(message))
+			//messages = append(messages, string(message))
 	}
 
 	// Glue all the JSON representations together into one payload to send
-	payload := strings.Join(messages, "\n")
+	//payload := strings.Join(messages, "\n")
+	payload := message
 	debug("payload message", payload)
 	go func() {
 
