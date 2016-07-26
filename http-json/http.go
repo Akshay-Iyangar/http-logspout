@@ -245,11 +245,9 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 		}
 	}
 
-	debug("The complete message is ", messages)
 	// Glue all the JSON representations together into one payload to send
 	payload := strings.Join(messages, "\n")
 
-	debug("The payload is ", messages)
 	go func() {
 
 		// Create the request and send it on its way
