@@ -245,7 +245,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			messages = append(messages, string(message))
 			debug("messages in if condition ", messages)
 		}
-			message := " "
+			message := ""
 			messages = append(messages, string(message))
 			debug("messages in else condition ", messages)
 	}
