@@ -179,18 +179,19 @@ func (a *HTTPAdapter) Stream(logstream chan *router.Message) {
 	for {
 		select {
 		case message := <-logstream:
+			if strings.Contains(string(message),"data"){
+				// Append the message to the buffer
+				a.bufferMutex.Lock()
+				a.buffer = append(a.buffer, message)
+				a.bufferMutex.Unlock()
 
-			// Append the message to the buffer
-			a.bufferMutex.Lock()
-			a.buffer = append(a.buffer, message)
-			a.bufferMutex.Unlock()
-
-			// Flush if the buffer is at capacity
-			if len(a.buffer) >= cap(a.buffer) {
-				a.flushHttp("full")
+				// Flush if the buffer is at capacity
+				if len(a.buffer) >= cap(a.buffer) {
+					a.flushHttp("full")
+				}
 			}
-		case <-a.timer.C:
 
+		case <-a.timer.C:
 			// Timeout, flush
 			a.flushHttp("timeout")
 		}
