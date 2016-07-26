@@ -245,6 +245,8 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 			messages = append(messages, string(message))
 			debug("messages in if condition ", messages)
 		}
+		message := ""
+		messages = append(messages, string(message))
 	}
 
 	// Glue all the JSON representations together into one payload to send
