@@ -222,7 +222,7 @@ func (a *HTTPAdapter) flushHttp(reason string) {
 	a.bufferMutex.Unlock()
 
 	// Create JSON representation of all messages
-	messages := make([]string, 0, len(buffer))
+	var messages = make([]string, 0, len(buffer))
 	for i := range buffer {
 		m := buffer[i]
 		if strings.Contains(m.Data,"data"){
